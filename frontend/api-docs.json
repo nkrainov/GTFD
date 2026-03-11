@@ -1,0 +1,133 @@
+{
+  "info": {
+    "title": "Pet Store API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/auth/login": {
+      "POST": {
+        "description": "Authenticate user and return JWT token",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "type": "String",
+            "required": false
+          }
+        ],
+        "requestBody": "LoginRequest",
+        "responses": {
+          "200": "TokenResponse",
+          "401": "ErrorResponse"
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "GET": {
+        "description": "Get user by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "type": "Long",
+            "required": true
+          }
+        ],
+        "requestBody": null,
+        "responses": {
+          "200": "UserResponse",
+          "404": "ErrorResponse"
+        }
+      },
+      "PUT": {
+        "description": "Update user profile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "type": "Long",
+            "required": true
+          }
+        ],
+        "requestBody": "UpdateUserRequest",
+        "responses": {
+          "200": "UserResponse",
+          "400": "ErrorResponse",
+          "404": "ErrorResponse"
+        }
+      },
+      "DELETE": {
+        "description": "Delete a user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "type": "Long",
+            "required": true
+          }
+        ],
+        "requestBody": null,
+        "responses": {
+          "204": null,
+          "404": "ErrorResponse"
+        }
+      }
+    },
+    "/api/users": {
+      "GET": {
+        "description": "List all users with optional pagination",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "Integer",
+            "required": false
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "type": "Integer",
+            "required": false
+          }
+        ],
+        "requestBody": null,
+        "responses": {
+          "200": "UserResponse"
+        }
+      }
+    }
+  },
+  "models": {
+    "LoginRequest": {
+      "fields": [
+        { "name": "username", "type": "String" },
+        { "name": "password", "type": "String" }
+      ]
+    },
+    "TokenResponse": {
+      "fields": [
+        { "name": "token",   "type": "String" },
+        { "name": "user",    "type": "UserResponse" }
+      ]
+    },
+    "UserResponse": {
+      "fields": [
+        { "name": "id",    "type": "Long"   },
+        { "name": "name",  "type": "String" },
+        { "name": "email", "type": "String" }
+      ]
+    },
+    "UpdateUserRequest": {
+      "fields": [
+        { "name": "name",  "type": "String" },
+        { "name": "email", "type": "String" }
+      ]
+    },
+    "ErrorResponse": {
+      "fields": [
+        { "name": "code",    "type": "Integer" },
+        { "name": "message", "type": "String"  }
+      ]
+    }
+  }
+}
