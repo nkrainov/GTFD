@@ -28,18 +28,11 @@ function statusClass(code) {
 
 function escapeHtml(s) {
   return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
 }
 
-/**
- * Recursively build a JSON-like schema preview string for a model.
- * @param {string} modelName
- * @param {Object} models
- * @param {number} depth
- * @param {Set<string>} visited - cycle guard
- */
 function buildSchemaPreview(modelName, models, depth = 0, visited = new Set()) {
   if (depth > 4 || visited.has(modelName)) return `"${modelName}"`;
   visited = new Set(visited);
@@ -53,22 +46,14 @@ function buildSchemaPreview(modelName, models, depth = 0, visited = new Set()) {
 
   const fields = (model.fields || []).map(f => {
     const val = isPrimitive(f.type)
-      ? `"<${f.type}>"`
-      : buildSchemaPreview(f.type, models, depth + 1, visited);
+        ? `"<${f.type}>"`
+        : buildSchemaPreview(f.type, models, depth + 1, visited);
     return `${innerIndent}"${f.name}": ${val}`;
   });
 
   return `{\n${fields.join(',\n')}\n${indent}}`;
 }
 
-/**
- * Build a JSON placeholder object for a request body textarea.
- * @param {string} modelName
- * @param {Object} models
- * @param {number} depth
- * @param {Set<string>} visited
- * @returns {string} JSON string
- */
 function buildBodyPlaceholder(modelName, models, depth = 0, visited = new Set()) {
   if (depth > 4 || visited.has(modelName)) return '{}';
   visited = new Set(visited);
@@ -96,10 +81,6 @@ function buildBodyPlaceholder(modelName, models, depth = 0, visited = new Set())
   return JSON.stringify(obj, null, 2);
 }
 
-/**
- * Group operations by tag derived from path segments.
- * E.g. /api/users/{id} → tag "users"
- */
 function groupByTag(paths) {
   const groups = {};
   Object.entries(paths).forEach(([path, methods]) => {
@@ -113,7 +94,6 @@ function groupByTag(paths) {
   return groups;
 }
 
-/** Re-render the endpoints container, applying an optional path filter. */
 function renderEndpoints(data, filter = '') {
   const container = document.getElementById('endpoints-container');
   container.innerHTML = '';
@@ -121,14 +101,13 @@ function renderEndpoints(data, filter = '') {
 
   Object.entries(groups).forEach(([tag, operations]) => {
     const filtered = filter
-      ? operations.filter(o => o.path.toLowerCase().includes(filter.toLowerCase()))
-      : operations;
+        ? operations.filter(o => o.path.toLowerCase().includes(filter.toLowerCase()))
+        : operations;
     if (filtered.length === 0) return;
 
     const section = document.createElement('div');
     section.className = 'tag-section';
 
-    // Tag header (collapsible)
     const header = document.createElement('div');
     header.className = 'tag-header';
     header.innerHTML = `
@@ -155,7 +134,6 @@ function renderEndpoints(data, filter = '') {
   });
 }
 
-/** Build a single operation row + expandable detail. */
 function renderOperation(path, method, op, models) {
   const wrap = document.createElement('div');
   wrap.className = 'operation';
@@ -186,7 +164,6 @@ function buildDetail(path, method, op, models) {
   const inner = document.createElement('div');
   inner.className = 'op-detail-inner';
 
-  // Try it out / Cancel buttons
   const tryBtn = document.createElement('button');
   tryBtn.className = 'try-btn';
   tryBtn.textContent = 'Try it out';
@@ -201,9 +178,7 @@ function buildDetail(path, method, op, models) {
   btnRow.appendChild(cancelBtn);
   inner.appendChild(btnRow);
 
-  // Parameters
   const params = op.parameters || [];
-  // inputMap: paramName → <textarea>
   const inputMap = {};
 
   if (params.length > 0) {
@@ -214,14 +189,15 @@ function buildDetail(path, method, op, models) {
 
     const table = document.createElement('table');
     table.className = 'params-table';
-    table.innerHTML = '<thead><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Value</th></tr></thead>';
+    table.innerHTML = '<thead><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Default</th><th>Value</th></tr></thead>';
     const tbody = document.createElement('tbody');
 
     params.forEach(p => {
       const input = document.createElement('textarea');
       input.className = 'param-input';
       input.rows = 1;
-      input.placeholder = p.type || '';
+      input.placeholder = p.defaultValue != null ? String(p.defaultValue) : (p.type || '');
+      if (p.defaultValue != null) input.value = String(p.defaultValue);
       input.disabled = true;
       inputMap[p.name] = input;
 
@@ -236,7 +212,8 @@ function buildDetail(path, method, op, models) {
         </td>
         <td><span class="param-in">${escapeHtml(p.in)}</span></td>
         <td><span class="param-type">${escapeHtml(p.type)}</span></td>
-        <td>${p.required ? 'required' : 'optional'}</td>`;
+        <td>${p.required ? 'required' : 'optional'}</td>
+        <td><span class="param-default">${p.defaultValue != null ? escapeHtml(String(p.defaultValue)) : '–'}</span></td>`;
       tr.appendChild(valCell);
       tbody.appendChild(tr);
     });
@@ -245,7 +222,6 @@ function buildDetail(path, method, op, models) {
     inner.appendChild(table);
   }
 
-  // Request body
   let bodyTextarea = null;
   if (op.requestBody) {
     const sectionTitle = document.createElement('div');
@@ -265,14 +241,12 @@ function buildDetail(path, method, op, models) {
     inner.appendChild(bodyTextarea);
   }
 
-  // Execute button
   const executeBtn = document.createElement('button');
   executeBtn.className = 'execute-btn';
   executeBtn.textContent = 'Execute';
   executeBtn.style.display = 'none';
   inner.appendChild(executeBtn);
 
-  // Curl output
   const curlWrap = document.createElement('div');
   curlWrap.style.display = 'none';
 
@@ -290,7 +264,6 @@ function buildDetail(path, method, op, models) {
   curlWrap.appendChild(curlBox);
   inner.appendChild(curlWrap);
 
-  // Live response
   const liveWrap = document.createElement('div');
   liveWrap.style.display = 'none';
 
@@ -310,7 +283,6 @@ function buildDetail(path, method, op, models) {
   liveWrap.appendChild(liveBlock);
   inner.appendChild(liveWrap);
 
-  // Try it out: enable/disable inputs
   tryBtn.addEventListener('click', () => {
     tryBtn.classList.add('active');
     tryBtn.style.display = 'none';
@@ -333,7 +305,6 @@ function buildDetail(path, method, op, models) {
     if (bodyTextarea) { bodyTextarea.disabled = true; bodyTextarea.value = ''; }
   });
 
-  // Execute: build URL, fetch, show curl + response
   executeBtn.addEventListener('click', () => {
     let url = path;
     const queryParts = [];
@@ -350,12 +321,18 @@ function buildDetail(path, method, op, models) {
 
     if (queryParts.length) url += '?' + queryParts.join('&');
 
-    const fullUrl = window.location.origin + url;
+    const fullUrl = getBaseUrl() + url;
     const bodyVal = bodyTextarea?.value.trim() || null;
     const hasBody = !!bodyVal;
 
     // Build curl string
     let curl = `curl -X ${method} \\\n  '${fullUrl}'`;
+    params.forEach(p => {
+      if (p.in === 'header') {
+        const val = (inputMap[p.name]?.value || '').trim();
+        if (val) curl += ` \\\n  -H '${p.name}: ${val.replace(/'/g, "\\'")}'`;
+      }
+    });
     if (hasBody) {
       curl += ` \\\n  -H 'Content-Type: application/json' \\\n  -d '${bodyVal.replace(/'/g, "\\'")}'`;
     }
@@ -364,10 +341,18 @@ function buildDetail(path, method, op, models) {
 
     // Fetch
     const fetchOpts = { method };
-    if (hasBody) {
-      fetchOpts.headers = { 'Content-Type': 'application/json' };
-      fetchOpts.body = bodyVal;
-    }
+    const reqHeaders = {};
+    if (hasBody) reqHeaders['Content-Type'] = 'application/json';
+
+    params.forEach(p => {
+      if (p.in === 'header') {
+        const val = (inputMap[p.name]?.value || '').trim();
+        if (val) reqHeaders[p.name] = val;
+      }
+    });
+
+    if (Object.keys(reqHeaders).length) fetchOpts.headers = reqHeaders;
+    if (hasBody) fetchOpts.body = bodyVal;
 
     liveWrap.style.display = '';
     const lrStatus = liveBlock.querySelector('.live-response-status');
@@ -377,24 +362,23 @@ function buildDetail(path, method, op, models) {
     lrBody.textContent = '';
 
     fetch(fullUrl, fetchOpts)
-      .then(async res => {
-        lrStatus.textContent = `${res.status} ${res.statusText}`;
-        lrStatus.className = 'live-response-status ' + (res.ok ? 'ok' : 'err');
-        const text = await res.text();
-        try {
-          lrBody.textContent = JSON.stringify(JSON.parse(text), null, 2);
-        } catch {
-          lrBody.textContent = text;
-        }
-      })
-      .catch(err => {
-        lrStatus.textContent = 'Network error';
-        lrStatus.className = 'live-response-status err';
-        lrBody.textContent = String(err);
-      });
+        .then(async res => {
+          lrStatus.textContent = `${res.status} ${res.statusText}`;
+          lrStatus.className = 'live-response-status ' + (res.ok ? 'ok' : 'err');
+          const text = await res.text();
+          try {
+            lrBody.textContent = JSON.stringify(JSON.parse(text), null, 2);
+          } catch {
+            lrBody.textContent = text;
+          }
+        })
+        .catch(err => {
+          lrStatus.textContent = 'Network error';
+          lrStatus.className = 'live-response-status err';
+          lrBody.textContent = String(err);
+        });
   });
 
-  // Responses table
   const respTitle = document.createElement('div');
   respTitle.className = 'section-title';
   respTitle.textContent = 'Responses';
@@ -402,19 +386,27 @@ function buildDetail(path, method, op, models) {
 
   const respTable = document.createElement('table');
   respTable.className = 'response-table';
-  respTable.innerHTML = '<thead><tr><th>Code</th><th>Schema</th></tr></thead>';
+  respTable.innerHTML = '<thead><tr><th>Code</th><th>Description</th><th>Schema</th></tr></thead>';
   const rtbody = document.createElement('tbody');
 
-  Object.entries(op.responses || {}).forEach(([code, schema]) => {
+  Object.entries(op.responses || {}).forEach(([code, resp]) => {
     const tr = document.createElement('tr');
     const schemaCell = document.createElement('td');
+    const descCell   = document.createElement('td');
 
-    if (schema) {
+    // resp can be a string (model name), an object {description, schema}, or null
+    const schemaName = typeof resp === 'string' ? resp : (resp?.schema ?? null);
+    const descText   = typeof resp === 'object' && resp !== null ? (resp.description || '') : '';
+
+    descCell.style.cssText = 'color:#555;font-size:13px;';
+    descCell.textContent = descText;
+
+    if (schemaName) {
       const schemaLink = document.createElement('span');
       schemaLink.style.cssText = 'font-family:monospace;font-size:12px;color:#4990e2;cursor:pointer;';
-      schemaLink.textContent = schema;
+      schemaLink.textContent = schemaName;
       schemaLink.addEventListener('click', () => {
-        const target = document.getElementById('model-' + schema);
+        const target = document.getElementById('model-' + schemaName);
         if (target) {
           target.scrollIntoView({ behavior: 'smooth' });
           target.click();
@@ -426,6 +418,7 @@ function buildDetail(path, method, op, models) {
     }
 
     tr.innerHTML = `<td><span class="status-code ${statusClass(code)}">${code}</span></td>`;
+    tr.appendChild(descCell);
     tr.appendChild(schemaCell);
     rtbody.appendChild(tr);
   });
@@ -459,7 +452,6 @@ function renderModels(models) {
     const detail = document.createElement('div');
     detail.className = 'model-detail';
 
-    // Schema preview
     const previewLabel = document.createElement('div');
     previewLabel.style.cssText = 'font-size:12px;color:#888;margin-bottom:4px;';
     previewLabel.textContent = 'Example schema:';
@@ -470,7 +462,6 @@ function renderModels(models) {
     schemaBox.textContent = buildSchemaPreview(name, models);
     detail.appendChild(schemaBox);
 
-    // Fields list
     const fieldsLabel = document.createElement('div');
     fieldsLabel.style.cssText = 'font-size:12px;color:#888;margin:12px 0 4px;';
     fieldsLabel.textContent = 'Fields:';
@@ -519,7 +510,6 @@ function renderModels(models) {
     body.appendChild(item);
   });
 
-  // Models section toggle
   const toggle = document.getElementById('models-toggle');
   toggle.addEventListener('click', () => {
     toggle.classList.toggle('collapsed');
@@ -532,21 +522,32 @@ document.getElementById('filter-input').addEventListener('input', e => {
 });
 
 let apiData = null;
+let currentBaseUrl = window.location.origin;
+
+function getBaseUrl() {
+  return (document.getElementById('base-url-input')?.value || '').replace(/\/$/, '') || currentBaseUrl;
+}
 
 async function loadDocs() {
   try {
-    const res = await fetch('./api-docs.json');
+    const res = await fetch('./doc/api-docs.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     apiData = data;
 
-    // Set title / version from optional info block
     const titleNode = document.getElementById('api-title');
     titleNode.childNodes[0].textContent =
-      data.info?.title ? data.info.title + ' ' : 'REST API ';
+        data.info?.title ? data.info.title + ' ' : 'REST API ';
     if (data.info?.version) {
       document.getElementById('api-version').textContent = data.info.version;
     }
+
+    // Set baseUrl from JSON or fallback to origin
+    if (data.info?.baseUrl) {
+      currentBaseUrl = data.info.baseUrl.replace(/\/$/, '');
+    }
+    const baseUrlInput = document.getElementById('base-url-input');
+    if (baseUrlInput) baseUrlInput.value = currentBaseUrl;
 
     renderEndpoints(data);
     renderModels(data.models || {});

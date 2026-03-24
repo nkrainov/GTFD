@@ -486,3 +486,37 @@ body {
   color: #999;
   font-size: 14px;
 }
+
+/* ── Base URL bar ── */
+.base-url-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.base-url-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3b4151;
+  white-space: nowrap;
+}
+.base-url-bar input {
+  flex: 1;
+  max-width: 480px;
+  padding: 6px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: "Source Code Pro", monospace;
+  outline: none;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+.base-url-bar input:focus { border-color: #89bf04; }
+
+/* ── param-default ── */
+.param-default {
+  font-family: "Source Code Pro", monospace;
+  font-size: 12px;
+  color: #888;
+}
