@@ -40,9 +40,11 @@ public class Analyzator {
     }
 
     public static class AFieldInfo {
+        public String name;
         public String type;
 
-        public AFieldInfo(String type) {
+        public AFieldInfo(String name, String type) {
+            this.name = name;
             this.type = type;
         }
     }
@@ -393,7 +395,7 @@ public class Analyzator {
 
         for (FieldInfo field : getAllFields(classInfo)) {
             String fieldType = getTypeName(Type.getType(field.getDescriptor()));
-            model.fields.add(new AFieldInfo(toOpenApiType(fieldType)));
+            model.fields.add(new AFieldInfo(field.getName(), toOpenApiType(fieldType)));
             collectModel(fieldType, allClasses, models);
         }
     }
