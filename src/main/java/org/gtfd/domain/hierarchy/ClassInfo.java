@@ -54,4 +54,9 @@ public class ClassInfo {
             implementors.add(implementor);
         }
     }
+
+    public List<ClassInfo> getImplementors() { return implementors; }
+
+    public List<ClassInfo> getSubClasses() { return subClasses; }
+    public List<ClassInfo> getInterfaces() { return interfaces; }
 }
