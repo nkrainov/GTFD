@@ -49,13 +49,10 @@ public class Analyzator {
         }
     }
 
-    //utils
-
     private static List<AnnotationInfo> getAllAnnotations(ClassInfo classInfo) {
         if (classInfo == null) {
             return Collections.emptyList();
         }
-
         List<AnnotationInfo> result = new ArrayList<>(classInfo.getAnnotations());
         ClassInfo superClass = classInfo.getSuperClass();
         if (superClass != null) {
@@ -69,7 +66,6 @@ public class Analyzator {
             return Collections.emptyList();
         }
         LinkedHashMap<String, MethodInfo> bySignature = new LinkedHashMap<>();
-
         ClassInfo superClass = classInfo.getSuperClass();
         if (superClass != null) {
             for (MethodInfo m : getAllMethods(superClass)) {
@@ -99,8 +95,6 @@ public class Analyzator {
         return result;
     }
 
-    //main
-
     public static ApiDocumentation analyze(Map<String, ClassInfo> classInfoMap) {
         ApiDocumentation doc = new ApiDocumentation();
 
@@ -112,7 +106,6 @@ public class Analyzator {
 
         for (ClassInfo controller : controllers) {
             String basePath = extractBasePath(controller);
-
             for (MethodInfo method : getAllMethods(controller)) {
                 EndpointInfo endpoint = extractEndpoint(method, basePath);
                 if (endpoint != null) {
@@ -140,28 +133,21 @@ public class Analyzator {
         return annotations.stream().anyMatch(ann -> ann.getDescriptor().equals(desc));
     }
 
-
     private static String extractBasePath(ClassInfo controller) {
         if (controller == null) {
             return "";
         }
-
         Optional<AnnotationInfo> requestMapping = controller.getAnnotations().stream()
                 .filter(ann -> ann.getDescriptor().equals("Lorg/springframework/web/bind/annotation/RequestMapping;"))
                 .findFirst();
         String superPath = extractBasePath(controller.getSuperClass());
         if (requestMapping.isPresent()) {
             String path = extractFirstString(requestMapping.get().getValues().get("value"));
-            if (path != null) {
-                return normalizePath(superPath + path);
-            }
+            if (path != null) return normalizePath(superPath + path);
             path = extractFirstString(requestMapping.get().getValues().get("path"));
-            if (path != null) {
-                return normalizePath(superPath + path);
-            }
+            if (path != null) return normalizePath(superPath + path);
         }
-
-        return extractBasePath(controller.getSuperClass());
+        return superPath;
     }
 
     private static String normalizePath(String path) {
@@ -228,14 +214,11 @@ public class Analyzator {
     private static String extractPathFromMapping(AnnotationInfo mappingAnn) {
         String path = extractFirstString(mappingAnn.getValues().get("value"));
         if (path != null) return normalizePath(path);
-
         path = extractFirstString(mappingAnn.getValues().get("path"));
         if (path != null) return normalizePath(path);
-
         return "";
     }
 
-    //we need it because ASM
     private static String extractFirstString(Object value) {
         if (value instanceof String) {
             return (String) value;
@@ -262,7 +245,6 @@ public class Analyzator {
                 String desc = ann.getDescriptor();
                 if (desc.contains("RequestParam")) {
                     param.in = "query";
-                    param.required = isRequired(ann);
                     param.required = isRequired(ann);
                     break;
                 } else if (desc.contains("PathVariable")) {
@@ -304,23 +286,20 @@ public class Analyzator {
 
     public static String toOpenApiType(String javaType) {
         if (javaType == null) return "string";
-
         return switch (javaType.toLowerCase()) {
-            case "int", "integer"                    -> "integer";
-            case "long"                              -> "integer";
-            case "float"                             -> "number";
-            case "double"                            -> "number";
-            case "boolean", "bool"                   -> "boolean";
-            case "string", "uuid" -> "string";
-            case "localdate"                         -> "string";
+            case "int", "integer"                           -> "integer";
+            case "long"                                     -> "integer";
+            case "float"                                    -> "number";
+            case "double"                                   -> "number";
+            case "boolean", "bool"                          -> "boolean";
+            case "string", "uuid"                           -> "string";
+            case "localdate"                                -> "string";
             case "localdatetime", "offsetdatetime",
-                 "zoneddatetime", "date"             -> "string";
-            case "byte[]"                            -> "string";
-            case "list", "arraylist",
-                 "set", "hashset"                    -> "array";
-            case "map", "hashmap",
-                 "object"                            -> "object";
-            default                                  -> "object";
+                 "zoneddatetime", "date"                    -> "string";
+            case "byte[]"                                   -> "string";
+            case "list", "arraylist", "set", "hashset"      -> "array";
+            case "map", "hashmap", "object"                 -> "object";
+            default                                         -> "object";
         };
     }
 
@@ -342,6 +321,14 @@ public class Analyzator {
         Map<String, String> responses = new LinkedHashMap<>();
         Type returnType = Type.getReturnType(method.getDescriptor());
         String returnTypeName = getTypeName(returnType);
+
+        if (returnTypeName.equals("ResponseEntity") && method.getSignature() != null) {
+            String inner = extractResponseEntityGeneric(method.getSignature());
+            if (inner != null) {
+                returnTypeName = inner;
+            }
+        }
+
         if (!returnTypeName.equals("void")) {
             responses.put("200", returnTypeName);
         }
@@ -366,11 +353,27 @@ public class Analyzator {
         return responses;
     }
 
+    private static String extractResponseEntityGeneric(String signature) {
+        String marker = "ResponseEntity<";
+        int start = signature.indexOf(marker);
+        if (start == -1) return null;
+        start += marker.length();
+
+        if (start >= signature.length() || signature.charAt(start) != 'L') return null;
+        start++;
+
+        int end = signature.indexOf(';', start);
+        if (end == -1) return null;
+
+        String internalName = signature.substring(start, end);
+        int slash = internalName.lastIndexOf('/');
+        return slash >= 0 ? internalName.substring(slash + 1) : internalName;
+    }
+
     private static ClassInfo findClass(String typeName, Map<String, ClassInfo> allClasses) {
         String internalName = typeName.replace('.', '/');
         ClassInfo result = allClasses.get(internalName);
         if (result != null) return result;
-
         String suffix = "/" + internalName;
         for (Map.Entry<String, ClassInfo> entry : allClasses.entrySet()) {
             if (entry.getKey().endsWith(suffix)) {
@@ -402,10 +405,8 @@ public class Analyzator {
         if (classInfo == null) {
             return;
         }
-
         ModelInfo model = new ModelInfo();
         models.put(typeName, model);
-
         for (FieldInfo field : getAllFields(classInfo)) {
             String fieldType = getTypeName(Type.getType(field.getDescriptor()));
             model.fields.add(new AFieldInfo(field.getName(), toOpenApiType(fieldType)));

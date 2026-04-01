@@ -291,7 +291,12 @@ function buildDetail(path, method, op, models) {
     executeBtn.style.display = '';
 
     Object.values(inputMap).forEach(inp => { inp.disabled = false; });
-    if (bodyTextarea) bodyTextarea.disabled = false;
+    if (bodyTextarea) {
+      bodyTextarea.disabled = false;
+      if (!bodyTextarea.value) {
+        bodyTextarea.value = buildBodyPlaceholder(op.requestBody, models);
+      }
+    }
   });
 
   cancelBtn.addEventListener('click', () => {
