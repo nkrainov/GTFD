@@ -4,13 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="afd6cdb7-5ff8-4dbe-a58c-a745ccd5d47f" name="Changes" comment="" />
+    <list default="true" id="afd6cdb7-5ff8-4dbe-a58c-a745ccd5d47f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="28" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
@@ -70,6 +73,8 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build GTFD.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GTFD [:org.gtfd.Main.main()].executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -102,7 +107,7 @@
       <option name="ALTERNATIVE_JRE_PATH" value="homebrew-24" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="org.gtfd.Main" />
-      <module name="GTFD_main" />
+      <module name="GTFD.main" />
       <option name="PROGRAM_PARAMETERS" value="musicshop-1.0.0.jar" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -145,6 +150,8 @@
       <workItem from="1774959454564" duration="206000" />
       <workItem from="1774959664084" duration="15931000" />
       <workItem from="1774982481805" duration="1425000" />
+      <workItem from="1775012309567" duration="1443000" />
+      <workItem from="1775013762840" duration="412000" />
     </task>
     <servers />
   </component>
