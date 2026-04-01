@@ -522,7 +522,7 @@ document.getElementById('filter-input').addEventListener('input', e => {
 });
 
 let apiData = null;
-let currentBaseUrl = window.location.origin;
+let currentBaseUrl = 'http://localhost:8081';
 
 function getBaseUrl() {
   return (document.getElementById('base-url-input')?.value || '').replace(/\/$/, '') || currentBaseUrl;

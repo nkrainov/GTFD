@@ -344,9 +344,17 @@ public class Analyzator {
         for (AnnotationInfo ann : method.getAnnotations()) {
             if (ann.getDescriptor().equals("Lorg/springframework/web/bind/annotation/ResponseStatus;")) {
                 Object code = ann.getValues().get("code");
+                if (code == null) {
+                    code = ann.getValues().get("value");
+                }
                 if (code != null) {
+                    String statusCode = httpStatusToCode(code.toString());
                     responses.clear();
-                    responses.put(code.toString(), returnTypeName);
+                    if (!returnTypeName.equals("void")) {
+                        responses.put(statusCode, returnTypeName);
+                    } else {
+                        responses.put(statusCode, null);
+                    }
                 }
             }
         }
@@ -398,5 +406,23 @@ public class Analyzator {
             model.fields.add(new AFieldInfo(field.getName(), toOpenApiType(fieldType)));
             collectModel(fieldType, allClasses, models);
         }
+    }
+
+    private static String httpStatusToCode(String enumValue) {
+        String name = enumValue.contains(".")
+                ? enumValue.substring(enumValue.lastIndexOf('.') + 1)
+                : enumValue;
+        return switch (name) {
+            case "OK"                    -> "200";
+            case "CREATED"               -> "201";
+            case "ACCEPTED"              -> "202";
+            case "NO_CONTENT"            -> "204";
+            case "BAD_REQUEST"           -> "400";
+            case "UNAUTHORIZED"          -> "401";
+            case "FORBIDDEN"             -> "403";
+            case "NOT_FOUND"             -> "404";
+            case "INTERNAL_SERVER_ERROR" -> "500";
+            default                      -> "200";
+        };
     }
 }
