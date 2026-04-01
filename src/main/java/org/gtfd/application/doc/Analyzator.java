@@ -149,11 +149,16 @@ public class Analyzator {
         Optional<AnnotationInfo> requestMapping = controller.getAnnotations().stream()
                 .filter(ann -> ann.getDescriptor().equals("Lorg/springframework/web/bind/annotation/RequestMapping;"))
                 .findFirst();
+        String superPath = extractBasePath(controller.getSuperClass());
         if (requestMapping.isPresent()) {
             String path = extractFirstString(requestMapping.get().getValues().get("value"));
-            if (path != null) return normalizePath(path);
+            if (path != null) {
+                return normalizePath(superPath + path);
+            }
             path = extractFirstString(requestMapping.get().getValues().get("path"));
-            if (path != null) return normalizePath(path);
+            if (path != null) {
+                return normalizePath(superPath + path);
+            }
         }
 
         return extractBasePath(controller.getSuperClass());
