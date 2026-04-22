@@ -2,8 +2,8 @@ plugins {
     id 'java'
 }
 
-group = 'org.example'
-version = '1.0-SNAPSHOT'
+group = 'org.gtfd'
+version = '1.0'
 
 repositories {
     mavenCentral()
@@ -15,8 +15,29 @@ dependencies {
 
     implementation("org.ow2.asm:asm:9.9")
     implementation('org.ow2.asm:asm-tree:9.9')
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
 }
 
 test {
     useJUnitPlatform()
 }
+
+sourceSets {
+    server {
+        java {
+            srcDirs = ['src/server/java']
+        }
+    }
+}
+
+task buildServerJar(type: Jar) {
+    dependsOn compileServerJava
+    archiveFileName = 'server.jar'
+    from sourceSets.server.output.classesDirs
+    manifest {
+        attributes 'Main-Class': 'org.gtfd.server.Main'
+    }
+    destinationDirectory = file('src/main/resources')
+}
+
+processResources.dependsOn buildServerJar
